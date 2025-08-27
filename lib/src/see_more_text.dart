@@ -303,6 +303,21 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
     return _collapsedText != null;
   }
 
+  /// Gets the effective max lines to ensure toggle text is visible.
+  int _getEffectiveMaxLines() {
+    if (_isExpanded) {
+      return widget.maxLines; // This won't be used anyway when expanded
+    }
+
+    // If text is overflowing and we need to show "see more",
+    // allow one extra line to ensure the toggle text is visible
+    if (_isTextOverflowing()) {
+      return widget.maxLines + 1;
+    }
+
+    return widget.maxLines;
+  }
+
   /// Builds the list of text spans with appropriate styling and interactions.
   List<InlineSpan> _buildTextSpans({
     required String text,
@@ -357,6 +372,9 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
     required List<InlineSpan> textSpans,
     required TextStyle style,
   }) {
+    // Calculate the effective max lines to accommodate the toggle text
+    final effectiveMaxLines = _getEffectiveMaxLines();
+
     return AnimatedSize(
       duration: widget.animationDuration,
       curve: widget.animationCurve,
@@ -364,12 +382,13 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
       child: widget.enableSelection
           ? SelectableText.rich(
               TextSpan(children: textSpans, style: style),
-              maxLines: _isExpanded ? null : widget.maxLines,
+              maxLines: _isExpanded ? null : effectiveMaxLines,
               textAlign: widget.textAlign,
+              scrollPhysics: const NeverScrollableScrollPhysics(),
             )
           : RichText(
               text: TextSpan(children: textSpans, style: style),
-              maxLines: _isExpanded ? null : widget.maxLines,
+              maxLines: _isExpanded ? null : effectiveMaxLines,
               overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
               textAlign: widget.textAlign,
             ),
