@@ -1,10 +1,10 @@
 name: see_more_text
 description: A Flutter widget that displays text with expandable/collapsible functionality, supporting HTML content, links, hashtags, and mentions.
 version: 1.0.0
-homepage: https://github.com/yourname/see_more_text
-repository: https://github.com/yourname/see_more_text
-issue_tracker: https://github.com/yourname/see_more_text/issues
-documentation: https://github.com/yourname/see_more_text#readme
+homepage: https://github.com/mostafejur21/see_more_text
+repository: https://github.com/mostafejur21/see_more_text
+issue_tracker: https://github.com/mostafejur21/see_more_text/issues
+documentation: https://github.com/mostafejur21/see_more_text#readme
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
