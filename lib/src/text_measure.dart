@@ -86,7 +86,9 @@ abstract class TextMeasure {
 
   /// Validates the input parameters for text measurement.
   static bool _validateInputs(String text, double maxWidth, int maxLines) {
-    return text.isNotEmpty && maxWidth > 0 && maxLines >= SeeMoreTextConstants.minLines;
+    return text.isNotEmpty &&
+        maxWidth > 0 &&
+        maxLines >= SeeMoreTextConstants.minLines;
   }
 
   /// Checks if the given text exceeds the specified constraints.

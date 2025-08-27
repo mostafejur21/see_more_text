@@ -94,7 +94,10 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -110,7 +113,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             if (title != null) ...[
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -186,8 +193,14 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         maxLines: 2,
         seeMoreText: 'View full details',
         seeLessText: 'Hide details',
-        textStyle: TextStyle(fontSize: 14, color: isDarkMode ? Colors.grey[300] : Colors.grey[800]),
-        linkStyle: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(
+          fontSize: 14,
+          color: isDarkMode ? Colors.grey[300] : Colors.grey[800],
+        ),
+        linkStyle: const TextStyle(
+          color: Colors.deepPurple,
+          fontWeight: FontWeight.w600,
+        ),
         textAlign: TextAlign.justify,
       ),
     );
@@ -211,7 +224,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             text:
                 'This text shows custom styling options with different font weights, colors, and spacing. You can customize every aspect of the text appearance to match your app design perfectly.',
             maxLines: 2,
-            textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.indigo),
+            textStyle: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.indigo,
+            ),
           ),
         ),
       ],
@@ -244,7 +261,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
           const SizedBox(height: 12),
           const Text(
             'Tap any URL, hashtag, or mention to see the interaction!',
-            style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -313,7 +334,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
           seeMoreText: '✨ Discover more',
           seeLessText: '↩️ Show less',
           textStyle: TextStyle(fontSize: 16, color: Colors.white, height: 1.6),
-          linkStyle: TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold, fontSize: 16),
+          linkStyle: TextStyle(
+            color: Colors.yellowAccent,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
       ),
     );

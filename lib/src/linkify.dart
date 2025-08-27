@@ -165,7 +165,8 @@ abstract class Linkify {
     return TextSpan(
       text: url,
       style: style,
-      recognizer: onUrlTap != null ? _createTapRecognizer(() => onUrlTap(url)) : null,
+      recognizer:
+          onUrlTap != null ? _createTapRecognizer(() => onUrlTap(url)) : null,
     );
   }
 
@@ -178,7 +179,9 @@ abstract class Linkify {
     return TextSpan(
       text: hashtag,
       style: style,
-      recognizer: onHashtagTap != null ? _createTapRecognizer(() => onHashtagTap(hashtag)) : null,
+      recognizer: onHashtagTap != null
+          ? _createTapRecognizer(() => onHashtagTap(hashtag))
+          : null,
     );
   }
 
@@ -191,7 +194,9 @@ abstract class Linkify {
     return TextSpan(
       text: mention,
       style: style,
-      recognizer: onMentionTap != null ? _createTapRecognizer(() => onMentionTap(mention)) : null,
+      recognizer: onMentionTap != null
+          ? _createTapRecognizer(() => onMentionTap(mention))
+          : null,
     );
   }
 

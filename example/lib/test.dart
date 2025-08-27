@@ -27,7 +27,10 @@ class TestApp extends StatelessWidget {
                 text: 'This is another test with custom styling.',
                 maxLines: 1,
                 textStyle: TextStyle(fontSize: 18, color: Colors.blue),
-                linkStyle: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                linkStyle: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),

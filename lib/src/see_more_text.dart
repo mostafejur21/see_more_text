@@ -180,13 +180,15 @@ class SeeMoreText extends StatefulWidget {
         ifTrue: 'selection enabled',
         ifFalse: 'selection disabled',
       ))
-      ..add(DiagnosticsProperty<Duration>('animationDuration', animationDuration))
+      ..add(
+          DiagnosticsProperty<Duration>('animationDuration', animationDuration))
       ..add(DiagnosticsProperty<Curve>('animationCurve', animationCurve));
   }
 }
 
 /// The private state class for [SeeMoreText].
-class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin {
+class _SeeMoreTextState extends State<SeeMoreText>
+    with TickerProviderStateMixin {
   /// Whether the text is currently in expanded state.
   bool _isExpanded = false;
 
@@ -279,7 +281,8 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
 
   /// Gets the effective text style, with black as default color.
   TextStyle _getEffectiveTextStyle(BuildContext context) {
-    return widget.textStyle ?? DefaultTextStyle.of(context).style.copyWith(color: Colors.black);
+    return widget.textStyle ??
+        DefaultTextStyle.of(context).style.copyWith(color: Colors.black);
   }
 
   /// Gets the effective link style, falling back to theme primary color.
@@ -332,7 +335,8 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
         onUrlTap: widget.onUrlTap,
         onHashtagTap: widget.onHashtagTap,
         onMentionTap: widget.onMentionTap,
-        onTextTap: widget.enableTextTapToggle && isOverflowing ? _handleToggle : null,
+        onTextTap:
+            widget.enableTextTapToggle && isOverflowing ? _handleToggle : null,
       ),
     ];
 
