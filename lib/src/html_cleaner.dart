@@ -57,6 +57,10 @@ abstract class HtmlCleaner {
   static String _performCleaning(String html) {
     String cleaned = html;
 
+    // Remove script and style tags and their content
+    cleaned = cleaned.replaceAll(RegExp(r'<script[^>]*>[\s\S]*?<\/script>', caseSensitive: false), '');
+    cleaned = cleaned.replaceAll(RegExp(r'<style[^>]*>[\s\S]*?<\/style>', caseSensitive: false), '');
+
     // Convert break tags to newlines (case-insensitive)
     cleaned = _convertBreakTags(cleaned);
 
@@ -69,10 +73,24 @@ abstract class HtmlCleaner {
     // Strip all remaining HTML tags
     cleaned = _stripHtmlTags(cleaned);
 
+    // Decode common HTML entities
+    cleaned = _decodeHtmlEntities(cleaned);
+
     // Normalize whitespace
     cleaned = _normalizeWhitespace(cleaned);
 
     return cleaned.trim();
+  }
+
+// Add this helper to decode common HTML entities
+  static String _decodeHtmlEntities(String text) {
+    return text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
   }
 
   /// Converts HTML break tags to newline characters.

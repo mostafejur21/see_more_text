@@ -5,6 +5,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'constants.dart';
 import 'linkify.dart';
@@ -180,15 +181,13 @@ class SeeMoreText extends StatefulWidget {
         ifTrue: 'selection enabled',
         ifFalse: 'selection disabled',
       ))
-      ..add(
-          DiagnosticsProperty<Duration>('animationDuration', animationDuration))
+      ..add(DiagnosticsProperty<Duration>('animationDuration', animationDuration))
       ..add(DiagnosticsProperty<Curve>('animationCurve', animationCurve));
   }
 }
 
 /// The private state class for [SeeMoreText].
-class _SeeMoreTextState extends State<SeeMoreText>
-    with TickerProviderStateMixin {
+class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin {
   /// Whether the text is currently in expanded state.
   bool _isExpanded = false;
 
@@ -281,8 +280,7 @@ class _SeeMoreTextState extends State<SeeMoreText>
 
   /// Gets the effective text style, with black as default color.
   TextStyle _getEffectiveTextStyle(BuildContext context) {
-    return widget.textStyle ??
-        DefaultTextStyle.of(context).style.copyWith(color: Colors.black);
+    return widget.textStyle ?? DefaultTextStyle.of(context).style.copyWith(color: Colors.black);
   }
 
   /// Gets the effective link style, falling back to theme primary color.
@@ -335,8 +333,7 @@ class _SeeMoreTextState extends State<SeeMoreText>
         onUrlTap: widget.onUrlTap,
         onHashtagTap: widget.onHashtagTap,
         onMentionTap: widget.onMentionTap,
-        onTextTap:
-            widget.enableTextTapToggle && isOverflowing ? _handleToggle : null,
+        onTextTap: widget.enableTextTapToggle && isOverflowing ? _handleToggle : null,
       ),
     ];
 
@@ -376,26 +373,25 @@ class _SeeMoreTextState extends State<SeeMoreText>
     required List<InlineSpan> textSpans,
     required TextStyle style,
   }) {
-    // Calculate the effective max lines to accommodate the toggle text
-    final effectiveMaxLines = _getEffectiveMaxLines();
+    final effectiveMaxLines = _isExpanded ? null : widget.maxLines;
 
-    return AnimatedSize(
-      duration: widget.animationDuration,
-      curve: widget.animationCurve,
-      alignment: Alignment.topLeft,
-      child: widget.enableSelection
-          ? SelectableText.rich(
-              TextSpan(children: textSpans, style: style),
-              maxLines: _isExpanded ? null : effectiveMaxLines,
-              textAlign: widget.textAlign,
-              scrollPhysics: const NeverScrollableScrollPhysics(),
-            )
-          : RichText(
-              text: TextSpan(children: textSpans, style: style),
-              maxLines: _isExpanded ? null : effectiveMaxLines,
-              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
-              textAlign: widget.textAlign,
-            ),
+    final rich = RichText(
+      key: ValueKey(_isExpanded),
+      text: TextSpan(children: textSpans, style: style),
+      maxLines: effectiveMaxLines,
+      overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
+      textAlign: widget.textAlign,
+      softWrap: true,
+    );
+
+    if (!widget.enableSelection) {
+      return rich; // plain RichText (not selectable)
+    }
+
+    // ✅ Make RichText selectable without using SelectableText
+    return SelectionArea(
+      magnifierConfiguration: TextMagnifierConfiguration.disabled, // disable "pop" animation
+      child: rich,
     );
   }
 
