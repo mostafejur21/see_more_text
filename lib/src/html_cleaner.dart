@@ -95,7 +95,8 @@ abstract class HtmlCleaner {
 
   /// Strips all HTML tags from the text.
   static String _stripHtmlTags(String html) {
-    return html.replaceAll(RegExp(r'<[^>]*>'), '');
+    // Make tag removal case-insensitive to catch <P>, <DIV>, etc.
+    return html.replaceAll(RegExp(r'<[^>]*>', caseSensitive: false), '');
   }
 
   /// Normalizes whitespace by collapsing multiple newlines.
