@@ -305,19 +305,19 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
   }
 
   /// Gets the effective max lines to ensure toggle text is visible.
-  int _getEffectiveMaxLines() {
-    if (_isExpanded) {
-      return widget.maxLines; // This won't be used anyway when expanded
-    }
+  // int _getEffectiveMaxLines() {
+  //   if (_isExpanded) {
+  //     return widget.maxLines; // This won't be used anyway when expanded
+  //   }
 
-    // If text is overflowing and we need to show "see more",
-    // allow one extra line to ensure the toggle text is visible
-    if (_isTextOverflowing()) {
-      return widget.maxLines + 1;
-    }
+  //   // If text is overflowing and we need to show "see more",
+  //   // allow one extra line to ensure the toggle text is visible
+  //   if (_isTextOverflowing()) {
+  //     return widget.maxLines + 1;
+  //   }
 
-    return widget.maxLines;
-  }
+  //   return widget.maxLines;
+  // }
 
   /// Builds the list of text spans with appropriate styling and interactions.
   List<InlineSpan> _buildTextSpans({
@@ -374,25 +374,25 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
     required TextStyle style,
   }) {
     final effectiveMaxLines = _isExpanded ? null : widget.maxLines;
-
-    final rich = RichText(
-      key: ValueKey(_isExpanded),
-      text: TextSpan(children: textSpans, style: style),
-      maxLines: effectiveMaxLines,
-      overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
-      textAlign: widget.textAlign,
-      softWrap: true,
-    );
-
-    if (!widget.enableSelection) {
-      return rich; // plain RichText (not selectable)
-    }
-
-    // ✅ Make RichText selectable without using SelectableText
-    return SelectionArea(
-      magnifierConfiguration: TextMagnifierConfiguration.disabled, // disable "pop" animation
-      child: rich,
-    );
+    return widget.enableSelection
+        ? SelectionArea(
+            child: RichText(
+              key: ValueKey(_isExpanded),
+              text: TextSpan(children: textSpans, style: style),
+              maxLines: effectiveMaxLines,
+              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
+              textAlign: widget.textAlign,
+              softWrap: true,
+            ),
+          )
+        : RichText(
+            key: ValueKey(_isExpanded),
+            text: TextSpan(children: textSpans, style: style),
+            maxLines: effectiveMaxLines,
+            overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
+            textAlign: widget.textAlign,
+            softWrap: true,
+          );
   }
 
   /// Handles the toggle between expanded and collapsed states.
