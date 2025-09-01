@@ -10,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'constants.dart';
 import 'linkify.dart';
 import 'models/text_span_config.dart';
-import 'text_measure.dart';
 import 'types/callbacks.dart';
 
 /// A widget that displays text with expandable/collapsible functionality.
@@ -187,18 +186,9 @@ class SeeMoreText extends StatefulWidget {
 }
 
 /// The private state class for [SeeMoreText].
-class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin {
+class _SeeMoreTextState extends State<SeeMoreText> {
   /// Whether the text is currently in expanded state.
   bool _isExpanded = false;
-
-  /// Cache for the processed text content.
-  String? _processedText;
-
-  /// Cache for the collapsed text version.
-  String? _collapsedText;
-
-  /// Cache for the layout constraints.
-  BoxConstraints? _cachedConstraints;
 
   @override
   Widget build(BuildContext context) {
@@ -209,73 +199,222 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
 
   /// Builds the main content based on the current state and constraints.
   Widget _buildContent(BuildContext context, BoxConstraints constraints) {
-    // Process text content if needed
-    _updateProcessedTextIfNeeded();
-
-    // Update collapsed text if constraints changed
-    _updateCollapsedTextIfNeeded(context, constraints);
-
-    final textSpanConfig = _createTextSpanConfig(context);
-    final displayText = _getDisplayText();
-    final isOverflowing = _isTextOverflowing();
-
-    final textSpans = _buildTextSpans(
-      text: displayText,
-      config: textSpanConfig,
-      isOverflowing: isOverflowing,
-    );
-
-    return _buildAnimatedContent(
-      textSpans: textSpans,
-      style: textSpanConfig.textStyle!,
-    );
-  }
-
-  /// Updates the processed text cache if the text has changed.
-  void _updateProcessedTextIfNeeded() {
-    // Since we now use plain text, no HTML processing needed
-    final processedText = widget.text;
-
-    if (_processedText != processedText) {
-      _processedText = processedText;
-      _collapsedText = null; // Invalidate collapsed text cache
-    }
-  }
-
-  /// Updates the collapsed text cache if constraints have changed.
-  void _updateCollapsedTextIfNeeded(
-    BuildContext context,
-    BoxConstraints constraints,
-  ) {
-    if (_cachedConstraints == constraints && _collapsedText != null) {
-      return; // No need to recalculate
-    }
-
-    _cachedConstraints = constraints;
-    final textStyle = _getEffectiveTextStyle(context);
-
-    _collapsedText = TextMeasure.computeCollapsedTextForSeeMore(
-      text: _processedText!,
-      style: textStyle,
-      maxWidth: constraints.maxWidth,
-      maxLines: widget.maxLines,
-      seeMoreLabel: widget.seeMoreText,
-      textDirection: Directionality.of(context),
-      textAlign: widget.textAlign,
-    );
-  }
-
-  /// Creates the text span configuration for the current context.
-  TextSpanConfig _createTextSpanConfig(BuildContext context) {
     final textStyle = _getEffectiveTextStyle(context);
     final linkStyle = _getEffectiveLinkStyle(context, textStyle);
 
-    return TextSpanConfig(
+    final textSpanConfig = TextSpanConfig(
       textStyle: textStyle,
       linkStyle: linkStyle,
       seeMoreText: widget.seeMoreText,
       seeLessText: widget.seeLessText,
     );
+
+    return _buildAnimatedContent(
+      context: context,
+      constraints: constraints,
+      config: textSpanConfig,
+    );
+  }
+
+  /// Builds the content with proper text measurement and trimming.
+  Widget _buildAnimatedContent({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required TextSpanConfig config,
+  }) {
+    final textDirection = Directionality.of(context);
+    final textAlign = widget.textAlign;
+
+    // Create text painter for full text
+    final fullTextPainter = TextPainter(
+      text: TextSpan(text: widget.text, style: config.textStyle),
+      textAlign: textAlign,
+      textDirection: textDirection,
+      maxLines: widget.maxLines,
+    );
+    fullTextPainter.layout(maxWidth: constraints.maxWidth);
+
+    final needsTruncation = fullTextPainter.didExceedMaxLines;
+
+    if (!needsTruncation) {
+      // No truncation needed
+      final textSpans = Linkify.buildClickableTextSpans(
+        text: widget.text,
+        style: config.textStyle!,
+        linkStyle: config.linkStyle,
+        onUrlTap: widget.onUrlTap,
+        onHashtagTap: widget.onHashtagTap,
+        onMentionTap: widget.onMentionTap,
+        onTextTap: widget.enableTextTapToggle ? _handleToggle : null,
+      );
+
+      return _buildRichText(textSpans, config, null);
+    }
+
+    // Calculate truncation point
+    final truncationResult = _calculateTruncationPoint(
+      fullText: widget.text,
+      style: config.textStyle!,
+      maxWidth: constraints.maxWidth,
+      maxLines: widget.maxLines,
+      seeMoreText: widget.seeMoreText,
+      textDirection: textDirection,
+      textAlign: textAlign,
+    );
+
+    final displayText = _isExpanded ? widget.text : truncationResult.truncatedText;
+    final textSpans = _buildTextSpans(
+      text: displayText,
+      config: config,
+      isExpanded: _isExpanded,
+      needsTruncation: needsTruncation,
+      needsSuffix: truncationResult.needsSuffix,
+    );
+
+    final effectiveMaxLines = _isExpanded ? null : widget.maxLines;
+
+    return _buildRichText(textSpans, config, effectiveMaxLines);
+  }
+
+  /// Calculates the optimal truncation point using a simpler approach.
+  _TruncationResult _calculateTruncationPoint({
+    required String fullText,
+    required TextStyle style,
+    required double maxWidth,
+    required int maxLines,
+    required String seeMoreText,
+    required TextDirection textDirection,
+    required TextAlign textAlign,
+  }) {
+    final suffix = '...$seeMoreText';
+
+    // Measure the suffix
+    final suffixPainter = TextPainter(
+      text: TextSpan(text: suffix, style: style),
+      textAlign: textAlign,
+      textDirection: textDirection,
+    );
+    suffixPainter.layout(maxWidth: maxWidth);
+
+    // Measure full text
+    final textPainter = TextPainter(
+      text: TextSpan(text: fullText, style: style),
+      textAlign: textAlign,
+      textDirection: textDirection,
+      maxLines: maxLines,
+    );
+    textPainter.layout(maxWidth: maxWidth);
+
+    var linkLongerThanLine = false;
+    int endIndex;
+
+    if (suffixPainter.size.width < maxWidth) {
+      // Calculate available space for text
+      final suffixWidth = suffixPainter.size.width;
+      final textSize = textPainter.size;
+      final pos = textPainter.getPositionForOffset(
+        Offset(
+          textDirection == TextDirection.rtl ? suffixWidth : textSize.width - suffixWidth,
+          textSize.height,
+        ),
+      );
+      endIndex = textPainter.getOffsetBefore(pos.offset) ?? 0;
+    } else {
+      // Suffix is too long, use the end of available lines
+      final pos = textPainter.getPositionForOffset(
+        textPainter.size.bottomLeft(Offset.zero),
+      );
+      endIndex = pos.offset;
+      linkLongerThanLine = true;
+    }
+
+    // Ensure we don't go beyond text length
+    endIndex = endIndex.clamp(0, fullText.length);
+
+    // Get the truncated text
+    final truncatedText = fullText.substring(0, endIndex);
+
+    return _TruncationResult(
+      truncatedText: truncatedText,
+      needsSuffix: !linkLongerThanLine,
+    );
+  }
+
+  /// Builds the list of text spans with appropriate styling and interactions.
+  List<InlineSpan> _buildTextSpans({
+    required String text,
+    required TextSpanConfig config,
+    required bool isExpanded,
+    required bool needsTruncation,
+    required bool needsSuffix,
+  }) {
+    final spans = <InlineSpan>[
+      ...Linkify.buildClickableTextSpans(
+        text: text,
+        style: config.textStyle!,
+        linkStyle: config.linkStyle,
+        onUrlTap: widget.onUrlTap,
+        onHashtagTap: widget.onHashtagTap,
+        onMentionTap: widget.onMentionTap,
+        onTextTap: widget.enableTextTapToggle && needsTruncation ? _handleToggle : null,
+      ),
+    ];
+
+    // Add toggle links if needed
+    if (needsTruncation) {
+      if (!isExpanded) {
+        if (needsSuffix) {
+          spans.addAll([
+            TextSpan(text: '...', style: config.textStyle),
+            TextSpan(
+              text: config.seeMoreText,
+              style: config.linkStyle,
+              recognizer: _createTapRecognizer(_handleToggle),
+            ),
+          ]);
+        } else {
+          spans.add(
+            TextSpan(
+              text: config.seeMoreText,
+              style: config.linkStyle,
+              recognizer: _createTapRecognizer(_handleToggle),
+            ),
+          );
+        }
+      } else {
+        spans.addAll([
+          TextSpan(text: '  ', style: config.textStyle),
+          TextSpan(
+            text: config.seeLessText,
+            style: config.linkStyle,
+            recognizer: _createTapRecognizer(_handleToggle),
+          ),
+        ]);
+      }
+    }
+
+    return spans;
+  }
+
+  /// Builds the RichText widget with proper configuration.
+  Widget _buildRichText(
+    List<InlineSpan> textSpans,
+    TextSpanConfig config,
+    int? maxLines,
+  ) {
+    final richText = RichText(
+      text: TextSpan(children: textSpans, style: config.textStyle),
+      maxLines: maxLines,
+      overflow: maxLines != null ? TextOverflow.clip : TextOverflow.visible,
+      textAlign: widget.textAlign,
+      softWrap: true,
+    );
+
+    if (widget.enableSelection) {
+      return SelectionArea(child: richText);
+    }
+
+    return richText;
   }
 
   /// Gets the effective text style, with black as default color.
@@ -289,110 +428,6 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
         baseStyle.copyWith(
           color: Theme.of(context).colorScheme.primary,
         );
-  }
-
-  /// Gets the text to display based on the current state.
-  String _getDisplayText() {
-    if (_isExpanded || !_isTextOverflowing()) {
-      return _processedText!;
-    }
-    return _collapsedText!;
-  }
-
-  /// Checks if the text is overflowing and needs truncation.
-  bool _isTextOverflowing() {
-    return _collapsedText != null;
-  }
-
-  /// Gets the effective max lines to ensure toggle text is visible.
-  // int _getEffectiveMaxLines() {
-  //   if (_isExpanded) {
-  //     return widget.maxLines; // This won't be used anyway when expanded
-  //   }
-
-  //   // If text is overflowing and we need to show "see more",
-  //   // allow one extra line to ensure the toggle text is visible
-  //   if (_isTextOverflowing()) {
-  //     return widget.maxLines + 1;
-  //   }
-
-  //   return widget.maxLines;
-  // }
-
-  /// Builds the list of text spans with appropriate styling and interactions.
-  List<InlineSpan> _buildTextSpans({
-    required String text,
-    required TextSpanConfig config,
-    required bool isOverflowing,
-  }) {
-    final spans = <InlineSpan>[
-      ...Linkify.buildClickableTextSpans(
-        text: text,
-        style: config.textStyle!,
-        linkStyle: config.linkStyle,
-        onUrlTap: widget.onUrlTap,
-        onHashtagTap: widget.onHashtagTap,
-        onMentionTap: widget.onMentionTap,
-        onTextTap: widget.enableTextTapToggle && isOverflowing ? _handleToggle : null,
-      ),
-    ];
-
-    // Add see more/less links if text is overflowing
-    if (isOverflowing) {
-      _addToggleSpans(spans, config);
-    }
-
-    return spans;
-  }
-
-  /// Adds the see more/see less spans to the text spans list.
-  void _addToggleSpans(List<InlineSpan> spans, TextSpanConfig config) {
-    if (!_isExpanded) {
-      // Add "see more" link
-      spans
-        ..add(TextSpan(text: config.ellipsis, style: config.textStyle))
-        ..add(TextSpan(
-          text: config.seeMoreText,
-          style: config.linkStyle,
-          recognizer: _createTapRecognizer(_handleToggle),
-        ));
-    } else {
-      // Add "see less" link
-      spans
-        ..add(TextSpan(text: config.spacer, style: config.textStyle))
-        ..add(TextSpan(
-          text: config.seeLessText,
-          style: config.linkStyle,
-          recognizer: _createTapRecognizer(_handleToggle),
-        ));
-    }
-  }
-
-  /// Builds the animated content wrapper.
-  Widget _buildAnimatedContent({
-    required List<InlineSpan> textSpans,
-    required TextStyle style,
-  }) {
-    final effectiveMaxLines = _isExpanded ? null : widget.maxLines;
-    return widget.enableSelection
-        ? SelectionArea(
-            child: RichText(
-              key: ValueKey(_isExpanded),
-              text: TextSpan(children: textSpans, style: style),
-              maxLines: effectiveMaxLines,
-              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
-              textAlign: widget.textAlign,
-              softWrap: true,
-            ),
-          )
-        : RichText(
-            key: ValueKey(_isExpanded),
-            text: TextSpan(children: textSpans, style: style),
-            maxLines: effectiveMaxLines,
-            overflow: _isExpanded ? TextOverflow.visible : TextOverflow.clip,
-            textAlign: widget.textAlign,
-            softWrap: true,
-          );
   }
 
   /// Handles the toggle between expanded and collapsed states.
@@ -418,4 +453,15 @@ class _SeeMoreTextState extends State<SeeMoreText> with TickerProviderStateMixin
       ifFalse: 'collapsed',
     ));
   }
+}
+
+/// Result of text truncation calculation.
+class _TruncationResult {
+  const _TruncationResult({
+    required this.truncatedText,
+    required this.needsSuffix,
+  });
+
+  final String truncatedText;
+  final bool needsSuffix;
 }

@@ -1,7 +1,7 @@
 # See More Text
 
 [![Pub Version](https://img.shields.io/pub/v/see_more_text.svg)](https://pub.dev/packages/see_more_text)
-[![License: BSD-3](https://img.shields.io/badge/license-BSD--3-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A simple Flutter widget that automatically truncates long text and lets users expand it with "See more" / "See less" buttons.
 
@@ -22,7 +22,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  see_more_text: ^1.0.0
+  see_more_text: ^1.1.0
 ```
 
 Then run:
@@ -133,7 +133,7 @@ BSD-3-Clause License
 
 ## License
 
-BSD-3-Clause License
+MIT License
 
 ### 🎯 Use Case Matrix
 
@@ -170,7 +170,6 @@ flutter test --coverage
 ```
 
 **Quality Metrics:**
-- ✅ 100% Test Coverage
 - ✅ Zero Linting Issues
 - ✅ Memory Leak Free
 - ✅ Performance Optimized
