@@ -54,6 +54,7 @@ class SeeMoreText extends StatefulWidget {
     this.linkStyle,
     this.seeMoreText = SeeMoreTextConstants.defaultSeeMoreText,
     this.seeLessText = SeeMoreTextConstants.defaultSeeLessText,
+    this.seeMoreLessTextStyle,
     this.onUrlTap,
     this.onHashtagTap,
     this.onMentionTap,
@@ -101,6 +102,13 @@ class SeeMoreText extends StatefulWidget {
   ///
   /// Defaults to [SeeMoreTextConstants.defaultSeeLessText].
   final String seeLessText;
+
+  /// The text style for the "see more" link.
+  ///
+  /// If not provided, defaults to [linkStyle].
+  /// This allows for separate styling of the "see more" link.
+  /// If you want it to match the link style, simply omit this parameter.
+  final TextStyle? seeMoreLessTextStyle;
 
   /// Callback invoked when a URL is tapped.
   ///
@@ -368,7 +376,7 @@ class _SeeMoreTextState extends State<SeeMoreText> {
             TextSpan(text: '...', style: config.textStyle),
             TextSpan(
               text: config.seeMoreText,
-              style: config.linkStyle,
+              style: widget.seeMoreLessTextStyle ?? config.linkStyle,
               recognizer: _createTapRecognizer(_handleToggle),
             ),
           ]);
@@ -376,17 +384,17 @@ class _SeeMoreTextState extends State<SeeMoreText> {
           spans.add(
             TextSpan(
               text: config.seeMoreText,
-              style: config.linkStyle,
+              style: widget.seeMoreLessTextStyle ?? config.linkStyle,
               recognizer: _createTapRecognizer(_handleToggle),
             ),
           );
         }
       } else {
         spans.addAll([
-          TextSpan(text: '  ', style: config.textStyle),
+          TextSpan(text: ' ', style: config.textStyle),
           TextSpan(
             text: config.seeLessText,
-            style: config.linkStyle,
+            style: widget.seeMoreLessTextStyle ?? config.linkStyle,
             recognizer: _createTapRecognizer(_handleToggle),
           ),
         ]);

@@ -22,7 +22,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  see_more_text: ^1.1.0
+  see_more_text: ^1.1.1
 ```
 
 Then run:

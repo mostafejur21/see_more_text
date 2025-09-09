@@ -1,5 +1,5 @@
 
 # Changelog
 
-## 1.1.0
-- Improve performance of text measurement and rendering.
+## 1.1.1
+- Add separate see more and see less texts styling options.
