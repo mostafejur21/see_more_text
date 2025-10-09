@@ -188,7 +188,7 @@ We love contributions! Whether it's:
 ### Quick Development Setup
 
 ```bash
-git clone https://github.com/your-repo/see_more_text.git
+git clone https://github.com/mostafejur21/see_more_text.git
 cd see_more_text
 flutter pub get
 flutter test
